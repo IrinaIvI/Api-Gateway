@@ -21,4 +21,4 @@ RUN poetry install --no-interaction --no-ansi -vvv
 
 COPY ./src /app
 
-ENTRYPOINT ["poetry", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001"]
+ENTRYPOINT ["poetry", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

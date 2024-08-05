@@ -15,7 +15,7 @@ RUN apt-get update && \
 
 RUN poetry config virtualenvs.create true
 
-COPY poetry.lock pyproject.toml ./
+COPY pyproject.toml poetry.lock ./
 
 RUN poetry install --no-interaction --no-ansi -vvv
 

@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
     zookeeper:
         image: bitnami/zookeeper:latest
@@ -38,6 +36,7 @@ services:
     auth:
       build:
         context: ./services/auth
+        dockerfile: Dockerfile
       ports:
         - "8001:8001"
       environment:
@@ -46,6 +45,7 @@ services:
     transactions:
       build:
         context: ./services/transactions
+        dockerfile: Dockerfile
       ports:
         - "8002:8002"
       environment:
@@ -54,6 +54,7 @@ services:
     face_verification:
       build:
         context: ./services/face_verification
+        dockerfile: Dockerfile
       ports:
         - "8003:8003"
       environment:

@@ -3,7 +3,12 @@ from typing import Annotated
 from decimal import Decimal
 from datetime import datetime
 
-from app.common import api_registration, api_authorisation, api_create_transaction, api_get_transaction
+from app.common import (
+    api_authorisation,
+    api_create_transaction,
+    api_get_transaction,
+    api_registration,
+)
 
 router = APIRouter(
     prefix="/api_gateway",

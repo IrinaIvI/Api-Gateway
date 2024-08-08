@@ -1,11 +1,11 @@
 from app.common import api_authorisation, api_create_transaction, api_get_transaction, api_registration
 from datetime import datetime
-from freezegun import freeze_time
 import pytest
 import requests
 
 
 test_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2xvZ2luIjoibWlrZSIsInBhc3N3b3JkIjoic3VwZXJib3NzIn0.qLj7Fh9Vr7bM9DE9s3Y_SPIrmApxlokn7Xb9DhAIE5s"
+time = datetime.now()
 
 @pytest.mark.parametrize('login, password', [
     pytest.param('mike', 'superboss', id='is correct'),
@@ -48,10 +48,9 @@ def test_api_create_transaction(user_id, token, amount, transaction_type):
     assert result == 'Correct operation'
 
 @pytest.mark.parametrize('user_id, token, start, end', [
-    pytest.param(2, test_token, "2024-08-08T12:00:00", "2024-08-08T12:00:00", id='is correct'),
-    pytest.param(4, test_token, "2024-08-08T12:00:00", "2024-08-08T12:00:00", id='is not correct', marks=pytest.mark.xfail())
+    pytest.param(2, test_token, time, time, id='is correct'),
+    pytest.param(4, test_token, time, time, id='is not correct', marks=pytest.mark.xfail())
 ])
-@freeze_time("2024-08-08T12:00:00")
 def test_get_transaction(user_id, token, start, end):
     requests.get(url="http://host.docker.internal:8002/transaction_service/router_create_base")
     api_create_transaction(2, token, 1500, '-')

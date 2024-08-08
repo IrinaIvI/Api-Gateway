@@ -11,7 +11,7 @@ run_tests:
     - pip install poetry
     - poetry install
   script:
-    - export PYTHONPATH=$PYTHONPATH:/builds/shift-python/y2024/homeworks/iivashko/transaction-service/src
+    - export PYTHONPATH=$PYTHONPATH:/builds/shift-python/y2024/homeworks/iivashko/api-gateway/src
     - poetry run pytest -v
 
 run_linter:

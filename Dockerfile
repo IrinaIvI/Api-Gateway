@@ -19,6 +19,6 @@ COPY pyproject.toml poetry.lock ./
 
 RUN poetry install --no-interaction --no-ansi -vvv
 
-COPY . ./src
+COPY . .
 
 ENTRYPOINT ["poetry", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -15,10 +15,10 @@ RUN apt-get update && \
 
 RUN poetry config virtualenvs.create true
 
-COPY pyproject.toml poetry.lock ./
+COPY poetry.lock pyproject.toml ./
 
 RUN poetry install --no-interaction --no-ansi -vvv
 
-COPY . .
+COPY ./src /app
 
 ENTRYPOINT ["poetry", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

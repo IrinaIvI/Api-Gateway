@@ -18,6 +18,6 @@
   ],
   "author": "Ivashko Irina <ira.ivashko.99@gmail.com>",
   "devDependencies": {
-    "standard-version": "^9.3.2"
-  }
+  "standard-version": "^9.3.2"
+}
 }

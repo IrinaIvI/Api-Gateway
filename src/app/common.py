@@ -58,6 +58,17 @@ async def api_get_transaction(user_id: int, token: str, start: datetime, end: da
         )
     return 'Invalid token'
 
+async def auth_ready():
+    """Проверяет состояние auth сервиса."""
+    return await handle_request(url='http://host.docker.internal:8001/auth_service/health/ready')
+
+async def transaction_ready():
+    """Проверяет состояние transaction сервиса."""
+    return await handle_request(url='http://host.docker.internal:8002/transaction_service/health/ready')
+
+async def face_verification_ready():
+    """Проверяет состояние transaction сервиса."""
+    return await handle_request(url='http://host.docker.internal:8003/face_verification/health/ready')
 
 async def handle_request(url: str, parameters: dict = None, request_type: str = 'get'):
     """Отправляет HTTP-запрос и обрабатывает ответ."""

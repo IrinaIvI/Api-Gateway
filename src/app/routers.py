@@ -8,6 +8,9 @@ from app.common import (
     api_create_transaction,
     api_get_transaction,
     api_registration,
+    transaction_ready,
+    face_verification_ready,
+    auth_ready
 )
 
 router = APIRouter(
@@ -24,6 +27,26 @@ def authorisation(user: Annotated[str, str, Depends(api_authorisation)]):
 
 @router.post('/api_create_transaction')
 def create_transaction(user: Annotated[int, Decimal, str, Depends(api_create_transaction)]):
+    return user
+
+@router.get('/api_get_transaction')
+def get_transaction(user: Annotated[int, datetime, datetime, Depends(api_get_transaction)]):
+    return user
+
+@router.get('/api_get_transaction_health')
+def transaction_ready():
+    return transaction_ready
+
+@router.get('/api_get_auth_health')
+def auth_ready():
+    return auth_ready
+
+@router.get('/api_get_face_verification_health')
+def auth_ready():
+    return face_verification_ready
+
+@router.get('/api_get_transaction')
+def get_transaction(user: Annotated[int, datetime, datetime, Depends(api_get_transaction)]):
     return user
 
 @router.get('/api_get_transaction')

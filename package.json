@@ -1,18 +1,23 @@
 {
-    "name": "api-gateway",
-    "version": "1.0.0",
-    "description": "API Gateway для регистрации, авторизации и управления транзакциями",
-    "main": "main.py",
-    "scripts": {
-      "start": "python3 main.py",
-      "test": "pytest",
-      "lint": "flake8 .",
-      "release": "standard-version"
-    },
-    "keywords": ["api", "gateway", "python", "async", "httpx"],
-    "author": "Ivashko Irina <ira.ivashko.99@gmail.com>",
-
-    "devDependencies": {
-      "standard-version": "^9.3.2"
-    }
+  "name": "api-gateway",
+  "version": "1.0.1",
+  "description": "API Gateway для регистрации, авторизации и управления транзакциями",
+  "main": "main.py",
+  "scripts": {
+    "start": "python3 main.py",
+    "test": "pytest",
+    "lint": "flake8 .",
+    "release": "standard-version"
+  },
+  "keywords": [
+    "api",
+    "gateway",
+    "python",
+    "async",
+    "httpx"
+  ],
+  "author": "Ivashko Irina <ira.ivashko.99@gmail.com>",
+  "devDependencies": {
+    "standard-version": "^9.3.2"
   }
+}

@@ -31,32 +31,36 @@ services:
       ports:
         - "8000:8000"
       environment:
-        - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - PYTHONPATH=/workspace/src
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
 
-    auth:
-      build:
-        context: ./services/auth
-        dockerfile: Dockerfile
-      ports:
-        - "8001:8001"
-      environment:
-        - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    # auth:
+    #   build:
+    #     context: ./services/auth
+    #     dockerfile: Dockerfile
+    #   ports:
+    #     - "8001:8001"
+    #   environment:
+    #   - PYTHONPATH=/workspace/src
+    #   - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
 
-    transactions:
-      build:
-        context: ./services/transactions
-        dockerfile: Dockerfile
-      ports:
-        - "8002:8002"
-      environment:
-        - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    # transactions:
+    #   build:
+    #     context: ./services/transactions
+    #     dockerfile: Dockerfile
+    #   ports:
+    #     - "8002:8002"
+    #   environment:
+    #   - PYTHONPATH=/workspace/src
+    #   - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
 
-    face_verification:
-      build:
-        context: ./services/face_verification
-        dockerfile: Dockerfile
-      ports:
-        - "8003:8003"
-      environment:
-        - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    # face_verification:
+    #   build:
+    #     context: ./services/face_verification
+    #     dockerfile: Dockerfile
+    #   ports:
+    #     - "8003:8003"
+    #   environment:
+    #   - PYTHONPATH=/workspace/src
+    #   - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
 

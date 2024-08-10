@@ -5,6 +5,7 @@ LABEL maintainer="ira.ivashko.99@gmail.com"
 WORKDIR /app
 
 ENV POETRY_VERSION=1.8.3
+ENV PYTHONPATH=/src/app
 ENV PATH="/root/.local/bin:${PATH}"
 
 # Установка системных зависимостей
@@ -19,6 +20,6 @@ COPY pyproject.toml poetry.lock ./
 
 RUN poetry install --no-interaction --no-ansi -vvv
 
-COPY ./src /app
+COPY ./src ./src/app
 
 ENTRYPOINT ["poetry", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

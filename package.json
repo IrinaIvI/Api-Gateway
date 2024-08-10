@@ -1,6 +1,6 @@
 {
   "name": "api-gateway",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "API Gateway для регистрации, авторизации и управления транзакциями",
   "main": "main.py",
   "scripts": {
@@ -18,6 +18,6 @@
   ],
   "author": "Ivashko Irina <ira.ivashko.99@gmail.com>",
   "devDependencies": {
-  "standard-version": "^9.3.2"
-}
+    "standard-version": "^9.3.2"
+  }
 }

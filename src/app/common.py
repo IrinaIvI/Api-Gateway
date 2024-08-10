@@ -27,7 +27,7 @@ async def api_authorisation(login: str, password: str):
 
 async def api_create_transaction(user_id: int, token: str, amount: Decimal, operation: str):
     """Отправляет запрос на создание транзакции."""
-    actual_token = {'token': token}
+    actual_token = {'id': id, 'token': token}
     validation_response = await handle_request(
         url='http://host.docker.internal:8001/auth_service/validate',
         parameters=actual_token,
@@ -44,7 +44,7 @@ async def api_create_transaction(user_id: int, token: str, amount: Decimal, oper
 
 async def api_get_transaction(user_id: int, token: str, start: datetime, end: datetime):
     """Отправляет запрос на получение отчета о транзакциях."""
-    actual_token = {'token': token}
+    actual_token = {'id': id, 'token': token}
     validation_response = await handle_request(
         url='http://host.docker.internal:8001/auth_service/validate',
         parameters=actual_token,

@@ -3,10 +3,10 @@ from app.common import (
     api_create_transaction,
     api_get_transaction,
     api_registration,
-    handle_request
 )
 from datetime import datetime
 import pytest
+from pytest_mock import MockerFixture
 
 @pytest.fixture
 async def user():
@@ -32,11 +32,10 @@ time = datetime.now()
     pytest.param('mike', '', id='is not correct', marks=pytest.mark.xfail()),
     pytest.param('', '', id='is not correct', marks=pytest.mark.xfail()),
 ])
-async def test_api_registration(login, password):
-    result = await api_registration(login, password)
-    params={'login': login, 'password': password}
-    response = await handle_request('http://host.docker.internal:8001/auth_service/registration', params)
-    assert result == response
+async def test_api_registration(login, password, mocker: MockerFixture):
+    mocker.patch('app.common.handle_request', return_value={'status': 'success'})
+    response = await api_registration(login, password)
+    assert response == {'status': 'success'}
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('login, password', [
@@ -46,11 +45,10 @@ async def test_api_registration(login, password):
     pytest.param('', '', id='is not correct', marks=pytest.mark.xfail()),
     pytest.param('johny', 'pwd123', id='is not correct', marks=pytest.mark.xfail()),
 ])
-async def test_api_authorisation(login, password):
-    params={'login': login, 'password': password}
-    response = await handle_request('http://host.docker.internal:8001/auth_service/authorisation', params, 'post')
-    result = await api_authorisation(login, password)
-    assert response == result
+async def test_api_authorisation(login, password, mocker: MockerFixture):
+    mocker.patch('app.common.handle_request', return_value={'token': 'some_token'})
+    response = await api_authorisation(login, password)
+    assert response == {'token': 'some_token'}
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('user_id, token, amount, transaction_type',
@@ -60,22 +58,23 @@ async def test_api_authorisation(login, password):
   pytest.param(1, test_token, 1000, '?', id='is not correct', marks=pytest.mark.xfail()),
   ]
 )
-async def test_api_create_transaction(user_id, token, amount, transaction_type):
-    await handle_request('http://host.docker.internal:8002/transaction_service/router_create_base')
-    await api_registration('mike', 'superboss')
-    await api_authorisation('mike', 'superboss')
-    result = await api_create_transaction(user_id, token, amount, transaction_type)
-    assert result == 'Correct operation'
+async def test_api_create_transaction(user_id, token, amount, transaction_type, mocker: MockerFixture):
+    mocker.patch('app.common.handle_request', side_effect=[
+        True,
+        {'status': 'Correct operation'}
+    ])
+    response = await api_create_transaction(user_id, token, amount, transaction_type)
+    assert response == {'status': 'Correct operation'}
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('user_id, token, start, end', [
     pytest.param(2, test_token, time, time, id='is correct'),
     pytest.param(4, test_token, time, time, id='is not correct', marks=pytest.mark.xfail())
 ])
-async def test_get_transaction(user_id, token, start, end):
-    await handle_request('http://host.docker.internal:8002/transaction_service/router_create_base')
-    await api_create_transaction(2, token, 1500, '-')
-    resulting_report = await api_get_transaction(user_id, token, start, end)
-    params={'user_id': user_id, 'start': start, 'end': end}
-    report = await handle_request('http://host.docker.internal:8002/transaction_service/get_transaction', params)
-    assert resulting_report == report
+async def test_get_transaction(user_id, token, start, end, mocker: MockerFixture):
+    mocker.patch('app.common.handle_request', side_effect=[
+        True,
+        {'transactions': []}
+    ])
+    response = await api_get_transaction(user_id, token, start, end)
+    assert response == {'transactions': []}

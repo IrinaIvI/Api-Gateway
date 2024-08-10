@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+
 import httpx
 
 TIMEOUT_MESSAGE = 'Превышено время ожидания'

@@ -1,16 +1,53 @@
-# Настройка локального окружения
+### Структура Проекта
 
-Для внесения изменений в репозиторий необходимо настроить работу внутри devcontainer-а.
+API Gateway написан для взаимодействия между клиентом и внутренними сервисами через асинхронного HTTP-клиента. Ниже приведен обзор основных компонентов:
 
-## MacOS / Windows
 
-- Устновить [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- Установить [Visual Studio Code](https://code.visualstudio.com/download)
-- [Настроить Visual Studio Code и Docker для использования Devcontainers](https://code.visualstudio.com/docs/devcontainers/containers#_getting-started)
-- [Настроить Git и SSH для работы в Devcontainer](https://code.visualstudio.com/remote/advancedcontainers/sharing-git-credentials)
-- [Установить шрифт Meslo Nerd Font для CLI в терминале](https://github.com/romkatv/powerlevel10k?tab=readme-ov-file#fonts)
-- По необходимости установить и настроить kubectl, внутри контейнера будут использованы настройки с хоста
-- Склонировать этот репозиторий на рабочую станцию
-- Открыть директорию с репозиторием через Visual Studio Code
-- Установить [рекомендуемые плагины](.vscode/extensions.json) Visual Studio Code
-- Ввести `Ctrl+Shift+P` или `Cmd+Shift+P` и выбрать `Dev Containers: Rebuild and Reopen in Container`
+## 1. `api_registration`
+
+- **Цель**: Обработка регистрации пользователя.
+- **URL**: `http://host.docker.internal:8001/auth_service/registration`
+- **Параметры**:
+  - `login`: Логин пользователя (строка)
+  - `password`: Пароль пользователя (строка)
+- **Функция**: Отправляет запрос на конечную точку регистрации с указанным логином и паролем.
+
+## 2. `api_authorisation`
+
+- **Цель**: Обработка аутентификации пользователя.
+- **URL**: `http://host.docker.internal:8001/auth_service/authorisation`
+- **Параметры**:
+  - `login`: Логин пользователя (строка)
+  - `password`: Пароль пользователя (строка)
+- **Функция**: Отправляет POST-запрос на конечную точку авторизации с логином и паролем пользователя.
+
+## 3. `api_create_transaction`
+
+- **Цель**: Создание новой транзакции для пользователя.
+- **URL**: `http://host.docker.internal:8002/transaction_service/create_transaction`
+- **Параметры**:
+  - `user_id`: ID пользователя (целое число)
+  - `token`: Токен аутентификации (строка)
+  - `amount`: Сумма транзакции (Decimal)
+  - `operation`: Тип операции (строка)
+- **Функция**: Сначала проверяет токен с помощью конечной точки `validate`, затем создает транзакцию, если токен действителен.
+
+## 4. `api_get_transaction`
+
+- **Цель**: Получение истории транзакций для пользователя.
+- **URL**: `http://host.docker.internal:8002/transaction_service/get_transaction`
+- **Параметры**:
+  - `user_id`: ID пользователя (целое число)
+  - `token`: Токен аутентификации (строка)
+  - `start`: Дата начала (datetime)
+  - `end`: Дата окончания (datetime)
+- **Функция**: Проверяет токен и извлекает историю транзакций между указанными начальной и конечной датами.
+
+## 5. `handle_request`
+
+- **Цель**: Общий метод для обработки HTTP-запросов.
+- **Параметры**:
+  - `url`: URL для отправки запроса (строка)
+  - `parameters`: Параметры для запроса (словарь)
+  - `request_type`: Тип HTTP-запроса (`get` или `post`)
+- **Функция**: Отправляет GET или POST запрос в зависимости от `request_type` и обрабатывает исключения, такие как таймаут и HTTP-ошибки.

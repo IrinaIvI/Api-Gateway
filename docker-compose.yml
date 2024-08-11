@@ -32,7 +32,10 @@ services:
         - "8000:8000"
       environment:
       - PYTHONPATH=/workspace/src/app
+      - PORT=8000
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      networks:
+      - app_network
 
     auth:
       build:
@@ -42,7 +45,10 @@ services:
         - "8001:8001"
       environment:
       - PYTHONPATH=/workspace/services/auth/src/app:/workspace/src/app
+      - PORT=8001
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      networks:
+      - app_network
 
     transactions:
       build:
@@ -52,7 +58,10 @@ services:
         - "8002:8002"
       environment:
       - PYTHONPATH=/workspace/services/transactions/src/app:/workspace/src/app
+      - PORT=8002
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      networks:
+      - app_network
 
     face_verification:
       build:
@@ -62,5 +71,12 @@ services:
         - "8003:8003"
       environment:
       - PYTHONPATH=/workspace/services/face_verification/src/app:/workspace/src/app
+      - PORT=8003
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
 

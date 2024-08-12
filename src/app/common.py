@@ -5,6 +5,7 @@ import httpx
 
 TIMEOUT_MESSAGE = 'Превышено время ожидания'
 ERROR_MESSAGE_PREFIX = 'Ошибка:'
+INVALID_TOKEN = 'Токен недействителен'
 
 
 async def api_registration(login: str, password: str):
@@ -28,11 +29,7 @@ async def api_authorisation(login: str, password: str):
 
 async def api_create_transaction(user_id: int, token: str, amount: Decimal, operation: str):
     """Отправляет запрос на создание транзакции."""
-    actual_token = {'id': id, 'token': token}
-    validation_response = await handle_request(
-        url='http://host.docker.internal:8001/auth_service/validate',
-        parameters=actual_token,
-    )
+    validation_response = await api_validate(user_id, token)
     if validation_response:
         transaction_params = {'user_id': user_id, 'amount': amount, 'operation': operation}
         return await handle_request(
@@ -40,23 +37,40 @@ async def api_create_transaction(user_id: int, token: str, amount: Decimal, oper
             parameters=transaction_params,
             request_type='post',
         )
-    return 'Invalid token'
+    return INVALID_TOKEN
 
 
 async def api_get_transaction(user_id: int, token: str, start: datetime, end: datetime):
     """Отправляет запрос на получение отчета о транзакциях."""
-    actual_token = {'id': id, 'token': token}
-    validation_response = await handle_request(
-        url='http://host.docker.internal:8001/auth_service/validate',
-        parameters=actual_token,
-    )
+    validation_response = await api_validate(user_id, token)
     if validation_response:
         transaction_report_params = {'user_id': user_id, 'start': start, 'end': end}
         return await handle_request(
             url='http://host.docker.internal:8002/transaction_service/get_transaction',
             parameters=transaction_report_params,
         )
-    return 'Invalid token'
+    return INVALID_TOKEN
+
+async def api_validate(user_id: int, token: str):
+    """Проверка действительность токена."""
+    actual_token = {'user_id': user_id, 'token': token}
+    validation_response = await handle_request(
+        url='http://host.docker.internal:8001/auth_service/validate',
+        parameters=actual_token,
+    )
+    return validation_response
+
+async def api_verify(user_id: int, token: str, img_path: str):
+    """Метод верификации пользователя в сервисе auth."""
+    validation_response = await api_validate(user_id, token)
+    if validation_response:
+        verify_response = await handle_request(
+            url='http://host.docker.internal:8001/auth_service/verify',
+            parameters={'user_id': user_id, 'img_path': img_path},
+            request_type='post'
+        )
+        return verify_response
+    return INVALID_TOKEN
 
 
 async def auth_ready():

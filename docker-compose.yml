@@ -44,7 +44,7 @@ services:
       ports:
         - "8001:8001"
       environment:
-      - PYTHONPATH=/workspace/services/auth/src/app:/workspace/src/app
+      - PYTHONPATH=/workspace/src/app
       - PORT=8001
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       networks:
@@ -57,7 +57,7 @@ services:
       ports:
         - "8002:8002"
       environment:
-      - PYTHONPATH=/workspace/services/transactions/src/app:/workspace/src/app
+      - PYTHONPATH=/workspace/src/app
       - PORT=8002
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       networks:
@@ -70,7 +70,7 @@ services:
       ports:
         - "8003:8003"
       environment:
-      - PYTHONPATH=/workspace/services/face_verification/src/app:/workspace/src/app
+      - PYTHONPATH=/workspace/src/app
       - PORT=8003
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       networks:

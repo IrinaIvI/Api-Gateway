@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File
 from typing import Annotated
 from decimal import Decimal
 from datetime import datetime
+from fastapi.responses import JSONResponse
 
 from app.common import (
     api_authorisation,
@@ -10,7 +11,8 @@ from app.common import (
     api_registration,
     transaction_ready,
     face_verification_ready,
-    auth_ready
+    auth_ready,
+    api_verify
 )
 
 router = APIRouter(
@@ -42,7 +44,7 @@ def auth_ready():
     return auth_ready
 
 @router.get('/api_get_face_verification_health')
-def auth_ready():
+def face_verification_ready():
     return face_verification_ready
 
 @router.get('/api_get_transaction')
@@ -52,3 +54,7 @@ def get_transaction(user: Annotated[int, datetime, datetime, Depends(api_get_tra
 @router.get('/api_get_transaction')
 def get_transaction(user: Annotated[int, datetime, datetime, Depends(api_get_transaction)]):
     return user
+
+@router.post('/verify')
+def verify(result: Annotated[int, str, File(...), Depends(api_verify)]):
+    return JSONResponse(content=result)

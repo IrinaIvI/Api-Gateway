@@ -11,8 +11,7 @@ from app.common import (
     api_registration,
     transaction_ready,
     face_verification_ready,
-    auth_ready,
-    api_verify
+    auth_ready
 )
 
 router = APIRouter(
@@ -54,7 +53,3 @@ def get_transaction(user: Annotated[int, datetime, datetime, Depends(api_get_tra
 @router.get('/api_get_transaction')
 def get_transaction(user: Annotated[int, datetime, datetime, Depends(api_get_transaction)]):
     return user
-
-@router.post('/verify')
-def verify(result: Annotated[int, str, File(...), Depends(api_verify)]):
-    return JSONResponse(content=result)

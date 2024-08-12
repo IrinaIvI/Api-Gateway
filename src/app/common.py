@@ -60,34 +60,6 @@ async def api_validate(user_id: int, token: str):
     )
     return validation_response
 
-async def api_verify(user_id: int, token: str, img_path: str):
-    """Метод верификации пользователя в сервисе auth."""
-    validation_response = await api_validate(user_id, token)
-    if validation_response:
-        verify_response = await handle_request(
-            url='http://host.docker.internal:8001/auth_service/verify',
-            parameters={'user_id': user_id, 'img_path': img_path},
-            request_type='post'
-        )
-        return verify_response
-    return INVALID_TOKEN
-
-
-async def auth_ready():
-    """Проверяет состояние auth сервиса."""
-    return await handle_request(url='http://host.docker.internal:8001/auth_service/health/ready')
-
-
-async def transaction_ready():
-    """Проверяет состояние transaction сервиса."""
-    return await handle_request(url='http://host.docker.internal:8002/transaction_service/health/ready')
-
-
-async def face_verification_ready():
-    """Проверяет состояние transaction сервиса."""
-    return await handle_request(url='http://host.docker.internal:8003/face_verification/health/ready')
-
-
 async def handle_request(url: str, parameters: dict = None, request_type: str = 'get'):
     """Отправляет HTTP-запрос и обрабатывает ответ."""
     async with httpx.AsyncClient() as client:
@@ -105,3 +77,18 @@ async def handle_request(url: str, parameters: dict = None, request_type: str = 
             return f'{ERROR_MESSAGE_PREFIX} {http_err}'
         except httpx.RequestError as req_err:
             return f'{ERROR_MESSAGE_PREFIX} {req_err}'
+
+
+async def auth_ready():
+    """Проверяет состояние auth сервиса."""
+    return await handle_request(url='http://host.docker.internal:8001/auth_service/health/ready')
+
+
+async def transaction_ready():
+    """Проверяет состояние transaction сервиса."""
+    return await handle_request(url='http://host.docker.internal:8002/transaction_service/health/ready')
+
+
+async def face_verification_ready():
+    """Проверяет состояние transaction сервиса."""
+    return await handle_request(url='http://host.docker.internal:8003/face_verification/health/ready')

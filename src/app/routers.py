@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, File
+from fastapi import APIRouter, Depends
 from typing import Annotated
 from decimal import Decimal
 from datetime import datetime
-from fastapi.responses import JSONResponse
+from fastapi import UploadFile
 
 from app.common import (
     api_authorisation,
@@ -11,7 +11,8 @@ from app.common import (
     api_registration,
     transaction_ready,
     face_verification_ready,
-    auth_ready
+    auth_ready,
+    api_verify
 )
 
 router = APIRouter(
@@ -27,12 +28,12 @@ def authorisation(user: Annotated[str, str, Depends(api_authorisation)]):
     return user
 
 @router.post('/api_create_transaction')
-def create_transaction(user: Annotated[int, Decimal, str, Depends(api_create_transaction)]):
-    return user
+def create_transaction(result: Annotated[int, Decimal, str, Depends(api_create_transaction)]):
+    return result
 
 @router.get('/api_get_transaction')
-def get_transaction(user: Annotated[int, datetime, datetime, Depends(api_get_transaction)]):
-    return user
+def get_transaction(report: Annotated[int, datetime, datetime, Depends(api_get_transaction)]):
+    return report
 
 @router.get('/api_get_transaction_health')
 def transaction_ready():
@@ -46,10 +47,6 @@ def auth_ready():
 def face_verification_ready():
     return face_verification_ready
 
-@router.get('/api_get_transaction')
-def get_transaction(user: Annotated[int, datetime, datetime, Depends(api_get_transaction)]):
-    return user
-
-@router.get('/api_get_transaction')
-def get_transaction(user: Annotated[int, datetime, datetime, Depends(api_get_transaction)]):
-    return user
+@router.post('/api_verify')
+def verify_user(result: Annotated[int, str, UploadFile, Depends(api_verify)]):
+    return result

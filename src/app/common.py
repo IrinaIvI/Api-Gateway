@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+from fastapi import UploadFile
 
 import httpx
 
@@ -29,7 +30,7 @@ async def api_authorisation(login: str, password: str):
 
 async def api_create_transaction(user_id: int, token: str, amount: Decimal, operation: str):
     """Отправляет запрос на создание транзакции."""
-    validation_response = await api_validate(user_id, token)
+    validation_response = await api_validate(token)
     if validation_response:
         transaction_params = {'user_id': user_id, 'amount': amount, 'operation': operation}
         return await handle_request(
@@ -42,7 +43,7 @@ async def api_create_transaction(user_id: int, token: str, amount: Decimal, oper
 
 async def api_get_transaction(user_id: int, token: str, start: datetime, end: datetime):
     """Отправляет запрос на получение отчета о транзакциях."""
-    validation_response = await api_validate(user_id, token)
+    validation_response = await api_validate(token)
     if validation_response:
         transaction_report_params = {'user_id': user_id, 'start': start, 'end': end}
         return await handle_request(
@@ -51,14 +52,29 @@ async def api_get_transaction(user_id: int, token: str, start: datetime, end: da
         )
     return INVALID_TOKEN
 
-async def api_validate(user_id: int, token: str):
+async def api_validate(token: str):
     """Проверка действительность токена."""
-    actual_token = {'user_id': user_id, 'token': token}
+    actual_token = {'token': token}
     validation_response = await handle_request(
         url='http://host.docker.internal:8001/auth_service/validate',
         parameters=actual_token,
     )
     return validation_response
+
+async def api_verify(user_id: int, token: str, img_path: UploadFile):
+    """Проверка действительности токена и верификация лица."""
+    # Проверка JWT-токена
+    parameters = { 'user_id': user_id, 'token': token, 'img_path': img_path}
+    validation_response = await api_validate(token)
+    if validation_response:
+        validation_response = await handle_request(
+        url='http://host.docker.internal:8001/auth_service/verify',
+        parameters=parameters,
+        request_type = 'post'
+    )
+        return validation_response
+    return {'status': 'invalid', 'message': 'Invalid token'}
+
 
 async def handle_request(url: str, parameters: dict = None, request_type: str = 'get'):
     """Отправляет HTTP-запрос и обрабатывает ответ."""

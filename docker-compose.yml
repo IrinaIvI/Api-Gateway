@@ -48,7 +48,7 @@ services:
       - PORT=8001
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       volumes:
-      - ./services/auth/photos:/photos
+      - ./services/auth/src/app/photos:/photos
       networks:
       - app_network
 

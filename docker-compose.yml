@@ -52,7 +52,6 @@ services:
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     volumes:
       - shared-data:/photos
-      #- shared-data:/services/auth/src/app/photos:/photos
     depends_on:
       - kafka
     networks:
@@ -87,7 +86,6 @@ services:
       - kafka
     volumes:
       - shared-data:/photos
-      #- shared-data:/services/auth/src/app/photos:/photos
     networks:
       - app_network
 
@@ -96,4 +94,4 @@ networks:
       driver: bridge
 
 volumes:
-  shared-data: # не работает почему-то
+  shared-data:

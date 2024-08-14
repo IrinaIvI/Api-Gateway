@@ -2,8 +2,7 @@ from fastapi import APIRouter, Depends
 from typing import Annotated
 from decimal import Decimal
 from datetime import datetime
-from fastapi import UploadFile
-
+from fastapi import UploadFile, File
 from app.common import (
     api_authorisation,
     api_create_transaction,
@@ -48,5 +47,7 @@ def face_verification_ready():
     return face_verification_ready
 
 @router.post('/api_verify')
-def verify_user(result: Annotated[int, str, UploadFile, Depends(api_verify)]):
+async def verify_user(user_id: int, token: str, photo: UploadFile = File(...)):
+    result = await api_verify(user_id, token, photo)
     return result
+

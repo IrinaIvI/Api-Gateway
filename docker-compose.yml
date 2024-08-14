@@ -51,7 +51,8 @@ services:
       - PORT=8001
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     volumes:
-      - shared-data:/services/auth/src/app/photos:/photos
+      - shared-data:/photos
+      #- shared-data:/services/auth/src/app/photos:/photos
     depends_on:
       - kafka
     networks:
@@ -85,7 +86,8 @@ services:
     depends_on:
       - kafka
     volumes:
-      - shared-data:/services/auth/src/app/photos:/photos
+      - shared-data:/photos
+      #- shared-data:/services/auth/src/app/photos:/photos
     networks:
       - app_network
 

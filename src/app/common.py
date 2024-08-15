@@ -1,30 +1,34 @@
 from datetime import datetime
 from decimal import Decimal
-from fastapi import UploadFile, File
 
 import httpx
+from fastapi import UploadFile, File
 
 TIMEOUT_MESSAGE = 'Превышено время ожидания'
 ERROR_MESSAGE_PREFIX = 'Ошибка:'
-INVALID_TOKEN = 'Токен недействителен'
+INVALID_TOKEN_MESSAGE = 'Токен недействителен'
+POST_METHOD = 'post'
+HTTP_OK_STATUS = 200
+DEFAULT_FILE = File(...)
 
 
 async def api_registration(login: str, password: str):
     """Отправляет запрос на регистрацию пользователя."""
     registration_params = {'login': login, 'password': password}
-    response =  await handle_request(
+    response = await handle_request(
         url='http://host.docker.internal:8001/auth_service/registration',
         parameters=registration_params,
     )
     return response.json()
 
+
 async def api_authorisation(login: str, password: str):
     """Отправляет запрос на авторизацию пользователя."""
     auth_params = {'login': login, 'password': password}
-    response =  await handle_request(
+    response = await handle_request(
         url='http://host.docker.internal:8001/auth_service/authorisation',
         parameters=auth_params,
-        request_type='post',
+        request_type=POST_METHOD,
     )
     return response.json()
 
@@ -37,10 +41,10 @@ async def api_create_transaction(user_id: int, token: str, amount: Decimal, oper
         response = await handle_request(
             url='http://host.docker.internal:8002/transaction_service/create_transaction',
             parameters=transaction_params,
-            request_type='post',
+            request_type=POST_METHOD,
         )
         return response.json()
-    return INVALID_TOKEN
+    return INVALID_TOKEN_MESSAGE
 
 
 async def api_get_transaction(user_id: int, token: str, start: datetime, end: datetime):
@@ -53,7 +57,8 @@ async def api_get_transaction(user_id: int, token: str, start: datetime, end: da
             parameters=transaction_report_params,
         )
         return response.json()
-    return INVALID_TOKEN
+    return INVALID_TOKEN_MESSAGE
+
 
 async def api_validate(token: str) -> bool:
     """Проверка действительность токена."""
@@ -63,32 +68,26 @@ async def api_validate(token: str) -> bool:
         parameters=actual_token,
     )
     if isinstance(validation_response, httpx.Response):
-        return validation_response.status_code == 200
-    else:
-        # Логика обработки ошибки, если response - строка ошибки
-        print(validation_response)  # Логгирование ошибки
-        return False
+        return validation_response.status_code == HTTP_OK_STATUS
+    return False
 
 
-async def api_verify(user_id: int, token: str, img_path: UploadFile = File(...)):
+async def api_verify(user_id: int, token: str, img_path: UploadFile = DEFAULT_FILE):
     """Проверка действительности токена и верификация лица."""
-    # Проверка JWT-токена
     validation_response = await api_validate(token)
     if validation_response:
         file_content = await img_path.read()
         files = {'photo': (img_path.filename, file_content, img_path.content_type)}
         parameters = {'user_id': user_id}
         verify_response = await handle_request(
-        url='http://host.docker.internal:8001/auth_service/verify',
-        parameters=parameters,
-        files=files,
-        request_type = 'post'
-    )
+            url='http://host.docker.internal:8001/auth_service/verify',
+            parameters=parameters,
+            files=files,
+            request_type=POST_METHOD,
+        )
         if isinstance(verify_response, httpx.Response):
             return verify_response.json()
-        else:
-            # Логика обработки ошибки
-            return {'status': 'error', 'message': verify_response}
+        return {'status': 'error', 'message': verify_response}
     return {'status': 'invalid', 'message': 'Invalid token'}
 
 
@@ -96,7 +95,7 @@ async def handle_request(url: str, parameters: dict = None, files: dict = None, 
     """Отправляет HTTP-запрос и обрабатывает ответ."""
     async with httpx.AsyncClient() as client:
         try:
-            if request_type == 'post':
+            if request_type == POST_METHOD:
                 response = await client.post(url, params=parameters, files=files, timeout=10)
             else:
                 response = await client.get(url, params=parameters, timeout=10)

@@ -3,10 +3,14 @@ from app.common import (
     api_create_transaction,
     api_get_transaction,
     api_registration,
+    api_validate,
+    api_verify
 )
 from datetime import datetime
 import pytest
 from pytest_mock import MockerFixture
+from fastapi import UploadFile
+from io import BytesIO
 import httpx
 
 @pytest.fixture
@@ -23,6 +27,12 @@ async def test_token(user):
     login, password = user
     token = await api_authorisation(login, password)
     return token
+
+@pytest.fixture
+def mock_file():
+    """Фикстура для корректного загруженного файла."""
+    return UploadFile(filename="test.jpg", file=BytesIO(b'Valid image'))
+
 
 time = datetime.now()
 
@@ -83,3 +93,29 @@ async def test_get_transaction(user_id, token, start, end, mocker: MockerFixture
     mocker.patch('app.common.handle_request', return_value=mock_response)
     response = await api_get_transaction(user_id, token, start, end)
     assert response == {'transactions': []}
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('token', [
+    pytest.param(test_token, id='is correct'),
+    pytest.param('invalid_token', id='is not correct', marks=pytest.mark.xfail())
+])
+async def test_validate(token, mocker: MockerFixture):
+    mock_response = mocker.Mock(spec=httpx.Response)
+    mock_response.status_code = 200
+    mocker.patch('app.common.handle_request', return_value=mock_response)
+    response = await api_validate(token)
+    assert response is True
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('user_id, token', [
+    pytest.param(1, 'valid_token', id='is correct'),
+    pytest.param(1, 'invalid_token', id='is not correct', marks=pytest.mark.xfail())
+])
+async def test_verify(user_id, token, mock_file, mocker: MockerFixture):
+    mocker.patch('app.common.api_validate', return_value=(token == 'valid_token'))
+    mock_response = mocker.Mock(spec=httpx.Response)
+    mock_response.json.return_value = {'status': 'verification successful'}
+    mocker.patch('app.common.handle_request', return_value=mock_response)
+    response = await api_verify(user_id, token, mock_file)
+    assert response == {'status': 'verification successful'}

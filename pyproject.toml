@@ -1,5 +1,4 @@
 [tool.pytest.ini_options]
-python_paths = ["src"]
 
 [tool.poetry]
 name = "workspace"

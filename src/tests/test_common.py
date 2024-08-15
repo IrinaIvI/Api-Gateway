@@ -7,6 +7,7 @@ from app.common import (
 from datetime import datetime
 import pytest
 from pytest_mock import MockerFixture
+import httpx
 
 @pytest.fixture
 async def user():
@@ -33,7 +34,9 @@ time = datetime.now()
     pytest.param('', '', id='is not correct', marks=pytest.mark.xfail()),
 ])
 async def test_api_registration(login, password, mocker: MockerFixture):
-    mocker.patch('app.common.handle_request', return_value={'status': 'success'})
+    mock_response = mocker.Mock(spec=httpx.Response)
+    mock_response.json.return_value = {'status': 'success'}
+    mocker.patch('app.common.handle_request', return_value=mock_response)
     response = await api_registration(login, password)
     assert response == {'status': 'success'}
 
@@ -46,7 +49,9 @@ async def test_api_registration(login, password, mocker: MockerFixture):
     pytest.param('johny', 'pwd123', id='is not correct', marks=pytest.mark.xfail()),
 ])
 async def test_api_authorisation(login, password, mocker: MockerFixture):
-    mocker.patch('app.common.handle_request', return_value={'token': 'some_token'})
+    mock_response = mocker.Mock(spec=httpx.Response)
+    mock_response.json.return_value = {'token': 'some_token'}
+    mocker.patch('app.common.handle_request', return_value=mock_response)
     response = await api_authorisation(login, password)
     assert response == {'token': 'some_token'}
 
@@ -59,10 +64,10 @@ async def test_api_authorisation(login, password, mocker: MockerFixture):
   ]
 )
 async def test_api_create_transaction(user_id, token, amount, transaction_type, mocker: MockerFixture):
-    mocker.patch('app.common.handle_request', side_effect=[
-        True,
-        {'status': 'Correct operation'}
-    ])
+    mocker.patch('app.common.api_validate', return_value=True)
+    mock_response = mocker.Mock(spec=httpx.Response)
+    mock_response.json.return_value = {'status': 'Correct operation'}
+    mocker.patch('app.common.handle_request', return_value=mock_response)
     response = await api_create_transaction(user_id, token, amount, transaction_type)
     assert response == {'status': 'Correct operation'}
 
@@ -72,9 +77,9 @@ async def test_api_create_transaction(user_id, token, amount, transaction_type, 
     pytest.param(4, test_token, time, time, id='is not correct', marks=pytest.mark.xfail())
 ])
 async def test_get_transaction(user_id, token, start, end, mocker: MockerFixture):
-    mocker.patch('app.common.handle_request', side_effect=[
-        True,
-        {'transactions': []}
-    ])
+    mocker.patch('app.common.api_validate', return_value=True)
+    mock_response = mocker.Mock(spec=httpx.Response)
+    mock_response.json.return_value = {'transactions': []}
+    mocker.patch('app.common.handle_request', return_value=mock_response)
     response = await api_get_transaction(user_id, token, start, end)
     assert response == {'transactions': []}

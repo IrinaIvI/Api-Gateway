@@ -1,12 +1,13 @@
 services:
   postgres:
-    image: postgres:15
+    image: postgres:13
     environment:
       POSTGRES_DB: card_app
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-      POSTGRES_PORT: 5433
-      POSTGRES_HOST: localhost
+      #POSTGRES_HOST: localhost
+    ports:
+      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
@@ -45,9 +46,11 @@ services:
     ports:
       - "8000:8000"
     environment:
+      #- PYTHONPATH=/app:/app/shared
       - PYTHONPATH=/workspace/src/app
       - PORT=8000
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - POSTGRES_URL=postgresql+psycopg2://postgres:password@postgres:5432/card_app
       #- POSTGRES_URL=postgresql+psycopg2://postgres:password@localhost:5432/card_app
     depends_on:
       - kafka
@@ -62,9 +65,12 @@ services:
     ports:
       - "8001:8001"
     environment:
-      - PYTHONPATH=/workspace/src/app
+      #- PYTHONPATH=/project_root/src:/project_root/src/app
+      #- PYTHONPATH=/project_root/src
+      #- PYTHONPATH=/workspace/src/app
       - PORT=8001
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - POSTGRES_URL=postgresql+psycopg2://postgres:password@postgres:5432/card_app
       #- POSTGRES_URL=postgresql+psycopg2://postgres:password@localhost:5432/card_app
     volumes:
       - shared-data:/photos
@@ -84,6 +90,7 @@ services:
       - PYTHONPATH=/workspace/src/app
       - PORT=8002
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - POSTGRES_URL=postgresql+psycopg2://postgres:password@postgres:5432/card_app
       #- POSTGRES_URL=postgresql+psycopg2://postgres:password@localhost:5432/card_app
     depends_on:
       - kafka
@@ -101,6 +108,7 @@ services:
       - PYTHONPATH=/workspace/src/app
       - PORT=8003
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - POSTGRES_URL=postgresql+psycopg2://postgres:password@postgres:5432/card_app
       #- POSTGRES_URL=postgresql+psycopg2://postgres:password@localhost:5432/card_app
     depends_on:
       - kafka

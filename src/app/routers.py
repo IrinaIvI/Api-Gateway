@@ -18,7 +18,7 @@ router = APIRouter(
     prefix="/api_gateway",
 )
 
-@router.get('/api_registration')
+@router.post('/api_registration')
 def registration(user: Annotated[str, str, Depends(api_registration)]):
     return user
 

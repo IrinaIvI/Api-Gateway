@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 
 import httpx
-from fastapi import UploadFile, File
+from fastapi import UploadFile, File, HTTPException
 
 TIMEOUT_MESSAGE = 'Превышено время ожидания'
 ERROR_MESSAGE_PREFIX = 'Ошибка:'
@@ -15,11 +15,23 @@ DEFAULT_FILE = File(...)
 async def api_registration(login: str, password: str):
     """Отправляет запрос на регистрацию пользователя."""
     registration_params = {'login': login, 'password': password}
-    response = await handle_request(
-        url='http://host.docker.internal:8001/auth_service/registration',
-        parameters=registration_params,
-    )
+    try:
+        response = await handle_request(
+            url='http://host.docker.internal:8001/auth_service/registration',
+            parameters=registration_params,
+            request_type='post'
+        )
+    except HTTPException as e:
+        raise HTTPException(status_code=e.status_code, detail=f"Ошибка регистрации: {e.detail}")
+    
     return response.json()
+
+    # response = await handle_request(
+    #     url='http://host.docker.internal:8001/auth_service/registration',
+    #     parameters=registration_params,
+    # )
+
+    # return response.json()
 
 
 async def api_authorisation(login: str, password: str):

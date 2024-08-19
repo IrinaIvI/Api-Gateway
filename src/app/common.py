@@ -3,6 +3,7 @@ from decimal import Decimal
 
 import httpx
 from fastapi import UploadFile, File, HTTPException
+import json
 
 TIMEOUT_MESSAGE = 'Превышено время ожидания'
 ERROR_MESSAGE_PREFIX = 'Ошибка:'
@@ -23,15 +24,8 @@ async def api_registration(login: str, password: str):
         )
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=f"Ошибка регистрации: {e.detail}")
-    
+
     return response.json()
-
-    # response = await handle_request(
-    #     url='http://host.docker.internal:8001/auth_service/registration',
-    #     parameters=registration_params,
-    # )
-
-    # return response.json()
 
 
 async def api_authorisation(login: str, password: str):
@@ -47,7 +41,7 @@ async def api_authorisation(login: str, password: str):
 
 async def api_create_transaction(user_id: int, token: str, amount: Decimal, operation: str):
     """Отправляет запрос на создание транзакции."""
-    validation_response = await api_validate(token)
+    validation_response = await api_validate(user_id, token)
     if validation_response:
         transaction_params = {'user_id': user_id, 'amount': amount, 'operation': operation}
         response = await handle_request(
@@ -61,7 +55,7 @@ async def api_create_transaction(user_id: int, token: str, amount: Decimal, oper
 
 async def api_get_transaction(user_id: int, token: str, start: datetime, end: datetime):
     """Отправляет запрос на получение отчета о транзакциях."""
-    validation_response = await api_validate(token)
+    validation_response = await api_validate(user_id, token)
     if validation_response:
         transaction_report_params = {'user_id': user_id, 'start': start, 'end': end}
         response = await handle_request(
@@ -72,35 +66,33 @@ async def api_get_transaction(user_id: int, token: str, start: datetime, end: da
     return INVALID_TOKEN_MESSAGE
 
 
-async def api_validate(token: str) -> bool:
+async def api_validate(id: int, token: str):
     """Проверка действительность токена."""
-    actual_token = {'token': token}
+    actual_token = {'user_id': id, 'token': token}
     validation_response = await handle_request(
         url='http://host.docker.internal:8001/auth_service/validate',
         parameters=actual_token,
     )
-    if isinstance(validation_response, httpx.Response):
-        return validation_response.status_code == HTTP_OK_STATUS
-    return False
+    return validation_response
 
 
 async def api_verify(user_id: int, token: str, img_path: UploadFile = DEFAULT_FILE):
     """Проверка действительности токена и верификация лица."""
-    validation_response = await api_validate(token)
-    if validation_response:
-        file_content = await img_path.read()
-        files = {'photo': (img_path.filename, file_content, img_path.content_type)}
-        parameters = {'user_id': user_id}
-        verify_response = await handle_request(
-            url='http://host.docker.internal:8001/auth_service/verify',
-            parameters=parameters,
-            files=files,
-            request_type=POST_METHOD,
-        )
-        if isinstance(verify_response, httpx.Response):
-            return verify_response.json()
-        return {'status': 'error', 'message': verify_response}
-    return {'status': 'invalid', 'message': 'Invalid token'}
+    # validation_response = await api_validate(user_id, token)
+    # if validation_response:
+    file_content = await img_path.read()
+    files = {'photo': (img_path.filename, file_content, img_path.content_type)}
+    parameters = {'user_id': user_id}
+    verify_response = await handle_request(
+        url='http://host.docker.internal:8001/auth_service/verify',
+        parameters=parameters,
+        files=files,
+        request_type=POST_METHOD,
+    )
+    if isinstance(verify_response, httpx.Response):
+        return verify_response.json()
+    return {'status': 'error', 'message': verify_response}
+    #return {'status': 'invalid', 'message': 'Invalid token'}
 
 
 async def handle_request(url: str, parameters: dict = None, files: dict = None, request_type: str = 'get'):

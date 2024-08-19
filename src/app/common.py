@@ -3,7 +3,6 @@ from decimal import Decimal
 
 import httpx
 from fastapi import UploadFile, File, HTTPException
-import json
 
 TIMEOUT_MESSAGE = 'Превышено время ожидания'
 ERROR_MESSAGE_PREFIX = 'Ошибка:'
@@ -20,10 +19,10 @@ async def api_registration(login: str, password: str):
         response = await handle_request(
             url='http://host.docker.internal:8001/auth_service/registration',
             parameters=registration_params,
-            request_type='post'
+            request_type=POST_METHOD,
         )
-    except HTTPException as e:
-        raise HTTPException(status_code=e.status_code, detail=f"Ошибка регистрации: {e.detail}")
+    except HTTPException as http_exception:
+        raise HTTPException(status_code=http_exception.status_code, detail=f'Ошибка регистрации: {http_exception.detail}')
 
     return response.json()
 
@@ -66,14 +65,14 @@ async def api_get_transaction(user_id: int, token: str, start: datetime, end: da
     return INVALID_TOKEN_MESSAGE
 
 
-async def api_validate(id: int, token: str):
+async def api_validate(user_id: int, token: str):
     """Проверка действительность токена."""
-    actual_token = {'user_id': id, 'token': token}
+    actual_token = {'user_id': user_id, 'token': token}
     response = await handle_request(
         url='http://host.docker.internal:8001/auth_service/validate',
         parameters=actual_token,
     )
-    return response.status_code == 200
+    return response.status_code == HTTP_OK_STATUS
 
 
 async def api_verify(user_id: int, token: str, img_path: UploadFile = DEFAULT_FILE):
@@ -108,10 +107,10 @@ async def handle_request(url: str, parameters: dict = None, files: dict = None, 
             return response
         except httpx.TimeoutException:
             return TIMEOUT_MESSAGE
-        except httpx.HTTPStatusError as http_err:
-            return f'{ERROR_MESSAGE_PREFIX} {http_err}'
-        except httpx.RequestError as req_err:
-            return f'{ERROR_MESSAGE_PREFIX} {req_err}'
+        except httpx.HTTPStatusError as http_error:
+            return f'{ERROR_MESSAGE_PREFIX} {http_error}'
+        except httpx.RequestError as request_error:
+            return f'{ERROR_MESSAGE_PREFIX} {request_error}'
 
 
 async def auth_ready():
@@ -125,5 +124,5 @@ async def transaction_ready():
 
 
 async def face_verification_ready():
-    """Проверяет состояние transaction сервиса."""
+    """Проверяет состояние face verification сервиса."""
     return await handle_request(url='http://host.docker.internal:8003/face_verification/health/ready')

@@ -41,16 +41,16 @@ async def api_authorisation(login: str, password: str):
 
 async def api_create_transaction(user_id: int, token: str, amount: Decimal, operation: str):
     """Отправляет запрос на создание транзакции."""
-    validation_response = await api_validate(user_id, token)
-    if validation_response:
-        transaction_params = {'user_id': user_id, 'amount': amount, 'operation': operation}
-        response = await handle_request(
-            url='http://host.docker.internal:8002/transaction_service/create_transaction',
-            parameters=transaction_params,
-            request_type=POST_METHOD,
-        )
-        return response.json()
-    return INVALID_TOKEN_MESSAGE
+    #validation_response = await api_validate(user_id, token)
+    #if validation_response:
+    transaction_params = {'user_id': user_id, 'amount': amount, 'operation': operation}
+    response = await handle_request(
+        url='http://host.docker.internal:8002/transaction_service/create_transaction',
+        parameters=transaction_params,
+        request_type=POST_METHOD,
+    )
+    return response.json()
+    #return INVALID_TOKEN_MESSAGE
 
 
 async def api_get_transaction(user_id: int, token: str, start: datetime, end: datetime):

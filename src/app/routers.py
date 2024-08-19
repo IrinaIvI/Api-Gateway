@@ -39,10 +39,6 @@ def get_transaction(report: Annotated[int, datetime, datetime, Depends(api_get_t
 def transaction_ready():
     return transaction_ready
 
-@router.get('/api_validate')
-def validate(result: Annotated[int, str, Depends(api_validate)]):
-    return result
-
 @router.get('/api_get_auth_health')
 def auth_ready():
     return auth_ready

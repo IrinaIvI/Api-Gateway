@@ -43,7 +43,7 @@ async def api_create_transaction(user_id: int, token: str, amount: Decimal, oper
     """Отправляет запрос на создание транзакции."""
     validation_response = await api_validate(user_id, token)
     if validation_response:
-        transaction_params = {'user_id': user_id, 'amount': amount, 'operation': operation}
+        transaction_params = {'id': user_id, 'amount': amount, 'operation': operation}
         response = await handle_request(
             url='http://host.docker.internal:8002/transaction_service/create_transaction',
             parameters=transaction_params,

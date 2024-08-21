@@ -10,10 +10,6 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
       - POSTGRES_USER=${POSTGRES_USER?Variable not set}
       - POSTGRES_DB=${POSTGRES_DB?Variable not set}
-    # environment:
-    #   POSTGRES_DB: test_db
-    #   POSTGRES_USER: postgres
-    #   POSTGRES_PASSWORD: password
     ports:
       - "5432:5432"
     networks:
@@ -57,11 +53,7 @@ services:
       - PYTHONPATH=/workspace/src/app
       - PORT=8000
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
-      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
-      - POSTGRES_DB=${POSTGRES_DB?Variable not set}
-      - POSTGRES_URL=${POSTGRES_URL?Variable not set}
-      #- POSTGRES_URL=postgresql+psycopg2://postgres:password@localhost:5432/test_db
+      - POSTGRES_URL=${POSTGRES_URL}
     depends_on:
       - kafka
       - postgres
@@ -70,23 +62,20 @@ services:
 
   auth:
     build:
-      context: ./services
-      dockerfile: ./auth/Dockerfile
+      context: ./services/auth
+      dockerfile: Dockerfile
     ports:
       - "8001:8001"
     env_file:
       - .env
     environment:
       - PORT=8001
-      #- PYTHONPATH=/workspace/src/app
+      - PYTHONPATH=/workspace/src/app
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
-      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
-      - POSTGRES_DB=${POSTGRES_DB?Variable not set}
-      - POSTGRES_URL=${POSTGRES_URL?Variable not set}
-      #- POSTGRES_URL=postgresql+psycopg2://postgres:password@localhost:5432/test_db
+      - POSTGRES_URL=${POSTGRES_URL}
     volumes:
       - shared-data:/photos
+      - ./services/common_base.py:/app/common_base.py
     depends_on:
       - kafka
       - postgres
@@ -95,21 +84,19 @@ services:
 
   transactions:
     build:
-      context: ./services
-      dockerfile: ./transactions/Dockerfile
+      context: ./services/transactions
+      dockerfile: Dockerfile
     ports:
       - "8002:8002"
     env_file:
       - .env
     environment:
-      #- PYTHONPATH=/workspace/src/app
       - PORT=8002
+      - PYTHONPATH=/workspace/src/app
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
-      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
-      - POSTGRES_DB=${POSTGRES_DB?Variable not set}
-      - POSTGRES_URL=${POSTGRES_URL?Variable not set}
-      #- POSTGRES_URL=postgresql+psycopg2://postgres:password@localhost:5432/test_db
+      - POSTGRES_URL=${POSTGRES_URL}
+    volumes:
+      - ./services/common_base.py:/app/common_base.py
     depends_on:
       - kafka
       - postgres
@@ -118,23 +105,23 @@ services:
 
   face_verification:
     build:
-      context: ./services
-      dockerfile: ./face_verification/Dockerfile
+      context: ./services/face_verification
+      dockerfile: Dockerfile
     ports:
       - "8003:8003"
     env_file:
       - .env
     environment:
-      #- PYTHONPATH=/workspace/src/app
       - PORT=8003
+      - PYTHONPATH=/workspace/src/app
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
       - POSTGRES_USER=${POSTGRES_USER?Variable not set}
       - POSTGRES_DB=${POSTGRES_DB?Variable not set}
       - POSTGRES_URL=${POSTGRES_URL?Variable not set}
-      #- POSTGRES_URL=postgresql+psycopg2://postgres:password@localhost:5432/test_db
     volumes:
       - shared-data:/photos
+      - ./services/common_base.py:/app/common_base.py
     depends_on:
       - kafka
       - postgres

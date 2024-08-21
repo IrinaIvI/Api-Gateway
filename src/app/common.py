@@ -21,10 +21,9 @@ async def api_registration(login: str, password: str):
             parameters=registration_params,
             request_type=POST_METHOD,
         )
+        return response
     except HTTPException as http_exception:
         raise HTTPException(status_code=http_exception.status_code, detail=f'Ошибка регистрации: {http_exception.detail}')
-
-    return response.json()
 
 
 async def api_authorisation(login: str, password: str):
@@ -35,20 +34,20 @@ async def api_authorisation(login: str, password: str):
         parameters=auth_params,
         request_type=POST_METHOD,
     )
-    return response.json()
+    return response
 
 
 async def api_create_transaction(user_id: int, token: str, amount: Decimal, operation: str):
     """Отправляет запрос на создание транзакции."""
     validation_response = await api_validate(user_id, token)
     if validation_response:
-        transaction_params = {'id': user_id, 'amount': amount, 'operation': operation}
+        transaction_params = {'user_id': user_id, 'amount': amount, 'operation': operation}
         response = await handle_request(
             url='http://host.docker.internal:8002/transaction_service/create_transaction',
             parameters=transaction_params,
             request_type=POST_METHOD,
         )
-        return response.json()
+        return response
     return INVALID_TOKEN_MESSAGE
 
 
@@ -61,7 +60,7 @@ async def api_get_transaction(user_id: int, token: str, start: datetime, end: da
             url='http://host.docker.internal:8002/transaction_service/get_transaction',
             parameters=transaction_report_params,
         )
-        return response.json()
+        return response
     return INVALID_TOKEN_MESSAGE
 
 
@@ -72,7 +71,7 @@ async def api_validate(user_id: int, token: str):
         url='http://host.docker.internal:8001/auth_service/validate',
         parameters=actual_token,
     )
-    return response.status_code == HTTP_OK_STATUS
+    return response.get('status') == 200
 
 
 async def api_verify(user_id: int, token: str, img_path: UploadFile = DEFAULT_FILE):
@@ -89,7 +88,7 @@ async def api_verify(user_id: int, token: str, img_path: UploadFile = DEFAULT_FI
             request_type=POST_METHOD,
         )
         if isinstance(verify_response, httpx.Response):
-            return verify_response.json()
+            return verify_response
         return {'status': 'error', 'message': verify_response}
     return {'status': 'invalid', 'message': 'Invalid token'}
 
@@ -104,13 +103,13 @@ async def handle_request(url: str, parameters: dict = None, files: dict = None, 
                 response = await client.get(url, params=parameters, timeout=10)
 
             response.raise_for_status()
-            return response
+            return response.json()
         except httpx.TimeoutException:
-            return TIMEOUT_MESSAGE
+            return {'status_code': 408, 'detail': 'Request Timeout'}
         except httpx.HTTPStatusError as http_error:
-            return f'{ERROR_MESSAGE_PREFIX} {http_error}'
+            return {'status_code': http_error.response.status_code, 'detail': str(http_error)}
         except httpx.RequestError as request_error:
-            return f'{ERROR_MESSAGE_PREFIX} {request_error}'
+            return {'status_code': 500, 'detail': f'Request Error: {str(request_error)}'}
 
 
 async def auth_ready():

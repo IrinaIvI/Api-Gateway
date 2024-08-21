@@ -1,14 +1,33 @@
 services:
   postgres:
     image: postgres:16
+    volumes:
+      - app-db-data:/var/lib/postgresql/data/pgdata
+    env_file:
+      - .env
     environment:
-      POSTGRES_DB: test_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_DB=${POSTGRES_DB?Variable not set}
+    # environment:
+    #   POSTGRES_DB: test_db
+    #   POSTGRES_USER: postgres
+    #   POSTGRES_PASSWORD: password
     ports:
       - "5432:5432"
     networks:
       - app_network
+
+  alembic:
+    build:
+      context: . # Эта команда запускает миграции
+    volumes:
+      - .:/app
+    environment:
+      - POSTGRES_URL=${POSTGRES_URL?Variable not set}
+    depends_on:
+      - postgres  # Убедитесь, что база данных готова перед запуском миграций
 
   zookeeper:
     image: bitnami/zookeeper:latest
@@ -42,11 +61,17 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     environment:
       - PYTHONPATH=/workspace/src/app
       - PORT=8000
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - POSTGRES_URL=postgresql+psycopg2://postgres:password@localhost:5432/test_db
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_DB=${POSTGRES_DB?Variable not set}
+      - POSTGRES_URL=${POSTGRES_URL?Variable not set}
+      #- POSTGRES_URL=postgresql+psycopg2://postgres:password@localhost:5432/test_db
     depends_on:
       - kafka
       - postgres
@@ -59,10 +84,16 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8001:8001"
+    env_file:
+      - .env
     environment:
       - PORT=8001
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - POSTGRES_URL=postgresql+psycopg2://postgres:password@localhost:5432/test_db
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_DB=${POSTGRES_DB?Variable not set}
+      - POSTGRES_URL=${POSTGRES_URL?Variable not set}
+      #- POSTGRES_URL=postgresql+psycopg2://postgres:password@localhost:5432/test_db
     volumes:
       - shared-data:/photos
     depends_on:
@@ -77,11 +108,17 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8002:8002"
+    env_file:
+      - .env
     environment:
       - PYTHONPATH=/workspace/src/app
       - PORT=8002
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - POSTGRES_URL=postgresql+psycopg2://postgres:password@localhost:5432/test_db
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_DB=${POSTGRES_DB?Variable not set}
+      - POSTGRES_URL=${POSTGRES_URL?Variable not set}
+      #- POSTGRES_URL=postgresql+psycopg2://postgres:password@localhost:5432/test_db
     depends_on:
       - kafka
       - postgres
@@ -94,11 +131,17 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8003:8003"
+    env_file:
+      - .env
     environment:
       - PYTHONPATH=/workspace/src/app
       - PORT=8003
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - POSTGRES_URL=postgresql+psycopg2://postgres:password@localhost:5432/test_db
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_DB=${POSTGRES_DB?Variable not set}
+      - POSTGRES_URL=${POSTGRES_URL?Variable not set}
+      #- POSTGRES_URL=postgresql+psycopg2://postgres:password@localhost:5432/test_db
     volumes:
       - shared-data:/photos
     depends_on:
@@ -113,3 +156,4 @@ networks:
 
 volumes:
   shared-data:
+  app-db-data:

@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:16
+    image: postgres:13
     volumes:
       - app-db-data:/var/lib/postgresql/data/pgdata
     env_file:
@@ -18,16 +18,6 @@ services:
       - "5432:5432"
     networks:
       - app_network
-
-  alembic:
-    build:
-      context: . # Эта команда запускает миграции
-    volumes:
-      - .:/app
-    environment:
-      - POSTGRES_URL=${POSTGRES_URL?Variable not set}
-    depends_on:
-      - postgres  # Убедитесь, что база данных готова перед запуском миграций
 
   zookeeper:
     image: bitnami/zookeeper:latest
@@ -80,14 +70,15 @@ services:
 
   auth:
     build:
-      context: ./services/auth
-      dockerfile: Dockerfile
+      context: ./services
+      dockerfile: ./auth/Dockerfile
     ports:
       - "8001:8001"
     env_file:
       - .env
     environment:
       - PORT=8001
+      #- PYTHONPATH=/workspace/src/app
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
       - POSTGRES_USER=${POSTGRES_USER?Variable not set}
@@ -104,14 +95,14 @@ services:
 
   transactions:
     build:
-      context: ./services/transactions
-      dockerfile: Dockerfile
+      context: ./services
+      dockerfile: ./transactions/Dockerfile
     ports:
       - "8002:8002"
     env_file:
       - .env
     environment:
-      - PYTHONPATH=/workspace/src/app
+      #- PYTHONPATH=/workspace/src/app
       - PORT=8002
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
@@ -127,14 +118,14 @@ services:
 
   face_verification:
     build:
-      context: ./services/face_verification
-      dockerfile: Dockerfile
+      context: ./services
+      dockerfile: ./face_verification/Dockerfile
     ports:
       - "8003:8003"
     env_file:
       - .env
     environment:
-      - PYTHONPATH=/workspace/src/app
+      #- PYTHONPATH=/workspace/src/app
       - PORT=8003
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}

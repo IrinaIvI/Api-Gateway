@@ -1,0 +1,12 @@
+[submodule "services/auth"]
+	path = services/auth
+	url = https://hub.mos.ru/shift-python/y2024/homeworks/iivashko/auth-service
+	branch = dockerfile_branch
+[submodule "services/face_verification"]
+	path = services/face_verification
+	url = https://hub.mos.ru/shift-python/y2024/homeworks/iivashko/face-verification-service
+	branch = dockerfile_branch
+[submodule "services/transactions"]
+	path = services/transactions
+	url = https://hub.mos.ru/shift-python/y2024/homeworks/iivashko/transaction-service
+	branch = dockerfile_branch

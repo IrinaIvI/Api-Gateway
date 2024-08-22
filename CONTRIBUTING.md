@@ -51,3 +51,11 @@ API Gateway написан для взаимодействия между кли
   - `parameters`: Параметры для запроса (словарь)
   - `request_type`: Тип HTTP-запроса (`get` или `post`)
 - **Функция**: Отправляет GET или POST запрос в зависимости от `request_type` и обрабатывает исключения, такие как таймаут и HTTP-ошибки.
+
+## 6. `Способ наката миграций`
+
+- Запустить сервисы с помощью `docker compose up --build -d`
+- `cd .\services\auth\` `poetry run alembic upgrade head`
+- `cd .\services\face_verification\` `poetry run alembic upgrade head`
+- `cd .\services\transactions\` `poetry run alembic upgrade head`
+

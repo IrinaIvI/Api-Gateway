@@ -61,7 +61,7 @@ async def test_api_registration(login, password, mocker: MockerFixture):
 async def test_api_authorisation(login, password, mocker: MockerFixture):
     mock_response = mocker.Mock(spec=httpx.Response)
     mock_response.json.return_value = {'token': 'some_token'}
-    mocker.patch('app.common.handle_request', return_value=mock_response)
+    mocker.patch('app.common.handle_request', return_value=mock_response.json())
     response = await api_authorisation(login, password)
     assert response == {'token': 'some_token'}
 
@@ -100,12 +100,10 @@ async def test_get_transaction(user_id, token, start, end, mocker: MockerFixture
     pytest.param(1, 'invalid_token', id='is not correct', marks=pytest.mark.xfail())
 ])
 async def test_validate(user_id, token, mocker: MockerFixture):
-    mock_response = mocker.Mock(spec=httpx.Response)
-    mock_response.status_code = 200
+    mock_response = {'status': 200, 'detail': 'OK'}
     mocker.patch('app.common.handle_request', return_value=mock_response)
     response = await api_validate(user_id, token)
     assert response is True
-
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('user_id, token', [
@@ -118,4 +116,5 @@ async def test_verify(user_id, token, mock_file, mocker: MockerFixture):
     mock_response.json.return_value = {'status': 'verification successful'}
     mocker.patch('app.common.handle_request', return_value=mock_response)
     response = await api_verify(user_id, token, mock_file)
-    assert response == {'status': 'verification successful'}
+    expected_response = {'status': 'verification successful'}
+    assert response == expected_response

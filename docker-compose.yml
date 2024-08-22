@@ -15,17 +15,6 @@ services:
     networks:
       - app_network
 
-  test_postgres:
-    image: postgres:13
-    environment:
-      POSTGRES_USER: test_user
-      POSTGRES_PASSWORD: test_password
-      POSTGRES_DB: test_db
-    ports:
-      - "5433:5433"
-    networks:
-      - app_network
-
   zookeeper:
     image: bitnami/zookeeper:latest
     ports:
@@ -68,7 +57,6 @@ services:
     depends_on:
       - kafka
       - postgres
-      - test_postgres
     networks:
       - app_network
 
@@ -91,7 +79,6 @@ services:
     depends_on:
       - kafka
       - postgres
-      - test_postgres
     networks:
       - app_network
 
@@ -113,7 +100,6 @@ services:
     depends_on:
       - kafka
       - postgres
-      - test_postgres
     networks:
       - app_network
 
@@ -139,7 +125,6 @@ services:
     depends_on:
       - kafka
       - postgres
-      - test_postgres
     networks:
       - app_network
 

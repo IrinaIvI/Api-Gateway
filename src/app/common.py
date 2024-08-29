@@ -17,8 +17,8 @@ async def api_registration(login: str, password: str) -> Dict[str, Any]:
     """Отправляет запрос на регистрацию пользователя."""
     registration_params = {'login': login, 'password': password}
     response = await handle_request(
-        # url='http://auth-service:8001/auth_service/registration',
-        url='http://host.docker.internal:8001/auth_service/registration',
+        url='http://auth-service:8001/auth_service/registration',
+        #url='http://host.docker.internal:8001/auth_service/registration',
         parameters=registration_params,
         request_type=POST_METHOD
     )
@@ -29,8 +29,8 @@ async def api_authorisation(login: str, password: str):
     """Отправляет запрос на авторизацию пользователя."""
     auth_params = {'login': login, 'password': password}
     response = await handle_request(
-        # url='http://auth-service:8001/auth_service/authorisation',
-        url='http://host.docker.internal:8001/auth_service/authorisation',
+        url='http://auth-service:8001/auth_service/authorisation',
+        #url='http://host.docker.internal:8001/auth_service/authorisation',
         parameters=auth_params,
         request_type=POST_METHOD,
     )
@@ -43,8 +43,8 @@ async def api_create_transaction(user_id: int, token: str, amount: Decimal, oper
     if validation_response:
         transaction_params = {'user_id': user_id, 'amount': amount, 'operation': operation}
         response = await handle_request(
-            # url='http://transaction-service:8002/transaction_service/create_transaction',
-            url='http://host.docker.internal:8002/transaction_service/create_transaction',
+            url='http://transaction-service:8002/transaction_service/create_transaction',
+            #url='http://host.docker.internal:8002/transaction_service/create_transaction',
             parameters=transaction_params,
             request_type=POST_METHOD,
         )
@@ -58,8 +58,8 @@ async def api_get_transaction(user_id: int, token: str, start: datetime, end: da
     if validation_response:
         transaction_report_params = {'user_id': user_id, 'start': start, 'end': end}
         response = await handle_request(
-            # url='http://transaction-service:8002/transaction_service/get_transaction',
-            url='http://host.docker.internal:8002/transaction_service/get_transaction',
+            url='http://transaction-service:8002/transaction_service/get_transaction',
+            #url='http://host.docker.internal:8002/transaction_service/get_transaction',
             parameters=transaction_report_params,
         )
         return response
@@ -70,8 +70,8 @@ async def api_validate(user_id: int, token: str):
     """Проверка действительность токена."""
     actual_token = {'user_id': user_id, 'token': token}
     response = await handle_request(
-        # url='http://auth-service:8001/auth_service/validate',
-        url='http://host.docker.internal:8001/auth_service/validate',
+        url='http://auth-service:8001/auth_service/validate',
+        #url='http://host.docker.internal:8001/auth_service/validate',
         parameters=actual_token,
     )
     return response.get('status') == HTTP_OK_STATUS
@@ -85,8 +85,8 @@ async def api_verify(user_id: int, token: str, img_path: UploadFile = DEFAULT_FI
         files = {'photo': (img_path.filename, file_content, img_path.content_type)}
         parameters = {'user_id': user_id}
         verify_response = await handle_request(
-            # url='http://auth-service:8001/auth_service/verify',
-            url='http://host.docker.internal:8001/auth_service/verify',
+            url='http://auth-service:8001/auth_service/verify',
+            #url='http://host.docker.internal:8001/auth_service/verify',
             parameters=parameters,
             files=files,
             request_type=POST_METHOD,

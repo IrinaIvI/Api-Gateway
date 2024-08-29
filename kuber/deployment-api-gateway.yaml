@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: api-gateway
-        image: merewhale/api-gateway
+        image: merewhale/api-gateway:1.0.0
         env:
         - name: PYTHONPATH
           value: /workspace/src/app

@@ -3,10 +3,15 @@ from app.common import (
     api_create_transaction,
     api_get_transaction,
     api_registration,
+    api_validate,
+    api_verify
 )
 from datetime import datetime
 import pytest
 from pytest_mock import MockerFixture
+from fastapi import UploadFile
+from io import BytesIO
+import httpx
 
 @pytest.fixture
 async def user():
@@ -23,6 +28,12 @@ async def test_token(user):
     token = await api_authorisation(login, password)
     return token
 
+@pytest.fixture
+def mock_file():
+    """Фикстура для корректного загруженного файла."""
+    return UploadFile(filename="test.jpg", file=BytesIO(b'Valid image'))
+
+
 time = datetime.now()
 
 @pytest.mark.asyncio
@@ -33,7 +44,9 @@ time = datetime.now()
     pytest.param('', '', id='is not correct', marks=pytest.mark.xfail()),
 ])
 async def test_api_registration(login, password, mocker: MockerFixture):
-    mocker.patch('app.common.handle_request', return_value={'status': 'success'})
+    mock_response = mocker.Mock(spec=httpx.Response)
+    mock_response.json.return_value = {'status': 'success'}
+    mocker.patch('app.common.handle_request', return_value=mock_response)
     response = await api_registration(login, password)
     assert response == {'status': 'success'}
 
@@ -46,7 +59,9 @@ async def test_api_registration(login, password, mocker: MockerFixture):
     pytest.param('johny', 'pwd123', id='is not correct', marks=pytest.mark.xfail()),
 ])
 async def test_api_authorisation(login, password, mocker: MockerFixture):
-    mocker.patch('app.common.handle_request', return_value={'token': 'some_token'})
+    mock_response = mocker.Mock(spec=httpx.Response)
+    mock_response.json.return_value = {'token': 'some_token'}
+    mocker.patch('app.common.handle_request', return_value=mock_response)
     response = await api_authorisation(login, password)
     assert response == {'token': 'some_token'}
 
@@ -59,10 +74,10 @@ async def test_api_authorisation(login, password, mocker: MockerFixture):
   ]
 )
 async def test_api_create_transaction(user_id, token, amount, transaction_type, mocker: MockerFixture):
-    mocker.patch('app.common.handle_request', side_effect=[
-        True,
-        {'status': 'Correct operation'}
-    ])
+    mocker.patch('app.common.api_validate', return_value=True)
+    mock_response = mocker.Mock(spec=httpx.Response)
+    mock_response.json.return_value = {'status': 'Correct operation'}
+    mocker.patch('app.common.handle_request', return_value=mock_response)
     response = await api_create_transaction(user_id, token, amount, transaction_type)
     assert response == {'status': 'Correct operation'}
 
@@ -72,9 +87,35 @@ async def test_api_create_transaction(user_id, token, amount, transaction_type, 
     pytest.param(4, test_token, time, time, id='is not correct', marks=pytest.mark.xfail())
 ])
 async def test_get_transaction(user_id, token, start, end, mocker: MockerFixture):
-    mocker.patch('app.common.handle_request', side_effect=[
-        True,
-        {'transactions': []}
-    ])
+    mocker.patch('app.common.api_validate', return_value=True)
+    mock_response = mocker.Mock(spec=httpx.Response)
+    mock_response.json.return_value = {'transactions': []}
+    mocker.patch('app.common.handle_request', return_value=mock_response)
     response = await api_get_transaction(user_id, token, start, end)
     assert response == {'transactions': []}
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('token', [
+    pytest.param(test_token, id='is correct'),
+    pytest.param('invalid_token', id='is not correct', marks=pytest.mark.xfail())
+])
+async def test_validate(token, mocker: MockerFixture):
+    mock_response = mocker.Mock(spec=httpx.Response)
+    mock_response.status_code = 200
+    mocker.patch('app.common.handle_request', return_value=mock_response)
+    response = await api_validate(token)
+    assert response is True
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('user_id, token', [
+    pytest.param(1, 'valid_token', id='is correct'),
+    pytest.param(1, 'invalid_token', id='is not correct', marks=pytest.mark.xfail())
+])
+async def test_verify(user_id, token, mock_file, mocker: MockerFixture):
+    mocker.patch('app.common.api_validate', return_value=(token == 'valid_token'))
+    mock_response = mocker.Mock(spec=httpx.Response)
+    mock_response.json.return_value = {'status': 'verification successful'}
+    mocker.patch('app.common.handle_request', return_value=mock_response)
+    response = await api_verify(user_id, token, mock_file)
+    assert response == {'status': 'verification successful'}

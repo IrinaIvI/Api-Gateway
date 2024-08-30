@@ -1,0 +1,72 @@
+--------создание таблиц--------
+CREATE TABLE IF NOT EXISTS "User" (
+	id SERIAL PRIMARY KEY,
+	login VARCHAR(100) UNIQUE NOT NULL,
+	password VARCHAR(100) NOT NULL,
+	verified BOOLEAN DEFAULT FALSE,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS UserFaceData (
+	id SERIAL PRIMARY KEY,
+	user_id INTEGER REFERENCES "User"(id),
+	vector  FLOAT8[] NOT NULL,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+--------добавление записей--------
+INSERT INTO "User"(login, password, verified, created_at, updated_at)
+VALUES
+	('johny', 'superpassword', FALSE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+	('jesscute', 'adorablepass', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+	
+INSERT INTO UserFaceData (user_id, vector, created_at, updated_at)
+VALUES
+    (1, ARRAY[1.0, 2.0, 3.0, 4.0], CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, ARRAY[5.0, 6.0, 7.0, 8.0], CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+	
+BEGIN;
+INSERT INTO "User" (login, password, verified, created_at, updated_at)
+VALUES ('charlie', 'charliespass', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO UserFaceData (user_id, vector, created_at, updated_at)
+VALUES ((SELECT id FROM "User" WHERE login = 'charlie'), ARRAY[13.0, 14.0, 15.0, 16.0], CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+COMMIT;
+--------чтение всех записей--------
+SELECT * FROM "User";
+
+SELECT * FROM UserFaceData;
+--------чтение выборочных записей--------
+SELECT * FROM UserFaceData
+WHERE user_id = (SELECT id FROM "User" WHERE login = 'johny');
+
+SELECT "User".id, "User".login
+FROM "User"
+JOIN UserFaceData ON "User".id = UserFaceData.user_id;
+--------изменение записей--------
+UPDATE UserFaceData
+SET vector = ARRAY[9.9, 10.5, 11.7, 12.2], updated_at = CURRENT_TIMESTAMP
+WHERE user_id = (SELECT id FROM "User" WHERE login = 'jesscute');
+
+UPDATE "User"
+SET password = 'commonpassword'
+WHERE verified = TRUE;
+
+UPDATE "User"
+SET updated_at = CURRENT_TIMESTAMP
+WHERE created_at < CURRENT_DATE - INTERVAL '30 days';
+
+SELECT "User".login, UserToken.token
+FROM "User"
+JOIN UserToken ON "User".id = UserToken.user_id;
+
+UPDATE UserToken
+SET is_valid = FALSE
+WHERE user_id = (SELECT id FROM "User" WHERE login = 'johny');
+--------удаление записей--------
+DELETE FROM UserFaceData
+WHERE user_id = 1;
+
+
+
+

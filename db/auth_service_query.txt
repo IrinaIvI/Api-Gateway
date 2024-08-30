@@ -1,0 +1,84 @@
+--------создание таблиц--------
+CREATE TABLE IF NOT EXISTS "User" (
+	id SERIAL PRIMARY KEY,
+	login VARCHAR(100) UNIQUE NOT NULL,
+	password VARCHAR(100) NOT NULL,
+	verified BOOLEAN DEFAULT FALSE,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS UserToken (
+	id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES "User"(id),
+    token VARCHAR(100) NOT NULL,
+    is_valid BOOLEAN DEFAULT FALSE,
+    expiration_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+--------добавление записей--------
+INSERT INTO "User"(login, password, verified, created_at, updated_at)
+VALUES
+	('johny', 'superpassword', FALSE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+	('jesscute', 'adorablepass', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+	
+INSERT INTO UserToken (user_id, token, is_valid, expiration_at)
+VALUES 
+	((SELECT id FROM "User" WHERE login = 'johny'), 'newtoken123', TRUE, CURRENT_TIMESTAMP + INTERVAL '1 day'),
+	(2, 'valid_token', TRUE, CURRENT_TIMESTAMP + INTERVAL '1 day');
+
+--------чтение всех записей--------
+SELECT * FROM "User";
+
+SELECT * FROM UserToken;
+--------чтение выборочных записей--------
+SELECT login, password FROM "User"
+WHERE verified is True;
+
+SELECT * FROM "User" 
+WHERE verified = TRUE;
+
+SELECT * FROM "User"
+WHERE password LIKE 'super%';
+
+SELECT * FROM "User"
+ORDER BY created_at DESC;
+
+SELECT login FROM "User"
+ORDER BY login ASC;
+
+SELECT * FROM "User"
+WHERE created_at BETWEEN CURRENT_DATE AND CURRENT_TIMESTAMP;
+
+SELECT "User".login, UserToken.token
+FROM "User"
+JOIN UserToken ON "User".id = UserToken.user_id
+WHERE "User".verified = TRUE;
+
+--------изменение записей--------
+UPDATE "User"
+SET password = 'newpassword'
+WHERE login = 'johny';
+
+UPDATE "User"
+SET password = 'commonpassword'
+WHERE verified = TRUE;
+
+UPDATE "User"
+SET updated_at = CURRENT_TIMESTAMP
+WHERE created_at < CURRENT_DATE - INTERVAL '30 days';
+
+SELECT "User".login, UserToken.token
+FROM "User"
+JOIN UserToken ON "User".id = UserToken.user_id;
+
+UPDATE UserToken
+SET is_valid = FALSE
+WHERE user_id = (SELECT id FROM "User" WHERE login = 'johny');
+--------удаление записей--------
+DELETE FROM UserToken
+WHERE user_id = (SELECT id FROM "User" WHERE login = 'johny');
+
+DELETE FROM "User"
+WHERE login = 'johny';
+

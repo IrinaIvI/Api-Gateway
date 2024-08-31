@@ -70,7 +70,7 @@ services:
       - ./.env
     environment:
       - PORT=8001
-      - PYTHONPATH=/workspace/src/app
+      - PYTHONPATH=/workspace/services/auth/src
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - POSTGRES_URL=${POSTGRES_URL}
     volumes:
@@ -91,7 +91,7 @@ services:
       - ./.env
     environment:
       - PORT=8002
-      - PYTHONPATH=/workspace/src/app
+      - PYTHONPATH=/workspace/services/transactions/src
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - POSTGRES_URL=${POSTGRES_URL}
     depends_on:
@@ -110,7 +110,7 @@ services:
       - ./.env
     environment:
       - PORT=8003
-      - PYTHONPATH=/workspace/src/app
+      - PYTHONPATH=/workspace/services/face_verification/src
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - POSTGRES_URL=${POSTGRES_URL}
     volumes:

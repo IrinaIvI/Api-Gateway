@@ -1,4 +1,20 @@
 services:
+  postgres:
+    image: postgres:13
+    volumes:
+      - app-db-data:/var/lib/postgresql/data/pgdata
+    env_file:
+      - .env
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_DB=${POSTGRES_DB?Variable not set}
+    ports:
+      - "5432:5432"
+    networks:
+      - app_network
+
   zookeeper:
     image: bitnami/zookeeper:latest
     ports:
@@ -31,12 +47,16 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     environment:
       - PYTHONPATH=/workspace/src/app
       - PORT=8000
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - POSTGRES_URL=${POSTGRES_URL}
     depends_on:
       - kafka
+      - postgres
     networks:
       - app_network
 
@@ -46,14 +66,19 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8001:8001"
+    env_file:
+      - .env
     environment:
-      - PYTHONPATH=/workspace/src/app
       - PORT=8001
+      - PYTHONPATH=/workspace/src/app
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - POSTGRES_URL=${POSTGRES_URL}
     volumes:
       - shared-data:/photos
+      - ./services/common_base.py:/app/common_base.py
     depends_on:
       - kafka
+      - postgres
     networks:
       - app_network
 
@@ -63,12 +88,18 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8002:8002"
+    env_file:
+      - .env
     environment:
-      - PYTHONPATH=/workspace/src/app
       - PORT=8002
+      - PYTHONPATH=/workspace/src/app
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - POSTGRES_URL=${POSTGRES_URL}
+    volumes:
+      - ./services/common_base.py:/app/common_base.py
     depends_on:
       - kafka
+      - postgres
     networks:
       - app_network
 
@@ -78,20 +109,29 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8003:8003"
+    env_file:
+      - .env
     environment:
-      - PYTHONPATH=/workspace/src/app
       - PORT=8003
+      - PYTHONPATH=/workspace/src/app
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-    depends_on:
-      - kafka
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_DB=${POSTGRES_DB?Variable not set}
+      - POSTGRES_URL=${POSTGRES_URL?Variable not set}
     volumes:
       - shared-data:/photos
+      - ./services/common_base.py:/app/common_base.py
+    depends_on:
+      - kafka
+      - postgres
     networks:
       - app_network
 
 networks:
   app_network:
-      driver: bridge
+    driver: bridge
 
 volumes:
   shared-data:
+  app-db-data:

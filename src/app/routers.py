@@ -11,14 +11,15 @@ from app.common import (
     transaction_ready,
     face_verification_ready,
     auth_ready,
-    api_verify
+    api_verify,
+    api_validate
 )
 
 router = APIRouter(
     prefix="/api_gateway",
 )
 
-@router.get('/api_registration')
+@router.post('/api_registration')
 def registration(user: Annotated[str, str, Depends(api_registration)]):
     return user
 

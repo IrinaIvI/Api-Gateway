@@ -21,9 +21,9 @@ INSERT INTO "User"(login, password, verified, created_at, updated_at)
 VALUES
 	('johny', 'superpassword', FALSE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 	('jesscute', 'adorablepass', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
-	
+
 INSERT INTO UserToken (user_id, token, is_valid, expiration_at)
-VALUES 
+VALUES
 	((SELECT id FROM "User" WHERE login = 'johny'), 'newtoken123', TRUE, CURRENT_TIMESTAMP + INTERVAL '1 day'),
 	(2, 'valid_token', TRUE, CURRENT_TIMESTAMP + INTERVAL '1 day');
 
@@ -35,7 +35,7 @@ SELECT * FROM UserToken;
 SELECT login, password FROM "User"
 WHERE verified is True;
 
-SELECT * FROM "User" 
+SELECT * FROM "User"
 WHERE verified = TRUE;
 
 SELECT * FROM "User"
@@ -81,4 +81,3 @@ WHERE user_id = (SELECT id FROM "User" WHERE login = 'johny');
 
 DELETE FROM "User"
 WHERE login = 'johny';
-

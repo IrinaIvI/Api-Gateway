@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 
 import httpx
-from fastapi import UploadFile, File
+from fastapi import UploadFile, File, HTTPException
 
 TIMEOUT_MESSAGE = 'Превышено время ожидания'
 ERROR_MESSAGE_PREFIX = 'Ошибка:'
@@ -15,11 +15,15 @@ DEFAULT_FILE = File(...)
 async def api_registration(login: str, password: str):
     """Отправляет запрос на регистрацию пользователя."""
     registration_params = {'login': login, 'password': password}
-    response = await handle_request(
-        url='http://host.docker.internal:8001/auth_service/registration',
-        parameters=registration_params,
-    )
-    return response.json()
+    try:
+        response = await handle_request(
+            url='http://host.docker.internal:8001/auth_service/registration',
+            parameters=registration_params,
+            request_type=POST_METHOD,
+        )
+        return response.json()
+    except HTTPException as http_exception:
+        raise HTTPException(status_code=http_exception.status_code, detail=f'Ошибка регистрации: {http_exception.detail}')
 
 
 async def api_authorisation(login: str, password: str):
@@ -30,12 +34,12 @@ async def api_authorisation(login: str, password: str):
         parameters=auth_params,
         request_type=POST_METHOD,
     )
-    return response.json()
+    return response
 
 
 async def api_create_transaction(user_id: int, token: str, amount: Decimal, operation: str):
     """Отправляет запрос на создание транзакции."""
-    validation_response = await api_validate(token)
+    validation_response = await api_validate(user_id, token)
     if validation_response:
         transaction_params = {'user_id': user_id, 'amount': amount, 'operation': operation}
         response = await handle_request(
@@ -49,7 +53,7 @@ async def api_create_transaction(user_id: int, token: str, amount: Decimal, oper
 
 async def api_get_transaction(user_id: int, token: str, start: datetime, end: datetime):
     """Отправляет запрос на получение отчета о транзакциях."""
-    validation_response = await api_validate(token)
+    validation_response = await api_validate(user_id, token)
     if validation_response:
         transaction_report_params = {'user_id': user_id, 'start': start, 'end': end}
         response = await handle_request(
@@ -60,21 +64,19 @@ async def api_get_transaction(user_id: int, token: str, start: datetime, end: da
     return INVALID_TOKEN_MESSAGE
 
 
-async def api_validate(token: str) -> bool:
+async def api_validate(user_id: int, token: str):
     """Проверка действительность токена."""
-    actual_token = {'token': token}
-    validation_response = await handle_request(
+    actual_token = {'user_id': user_id, 'token': token}
+    response = await handle_request(
         url='http://host.docker.internal:8001/auth_service/validate',
         parameters=actual_token,
     )
-    if isinstance(validation_response, httpx.Response):
-        return validation_response.status_code == HTTP_OK_STATUS
-    return False
+    return response.get('status') == HTTP_OK_STATUS
 
 
 async def api_verify(user_id: int, token: str, img_path: UploadFile = DEFAULT_FILE):
     """Проверка действительности токена и верификация лица."""
-    validation_response = await api_validate(token)
+    validation_response = await api_validate(user_id, token)
     if validation_response:
         file_content = await img_path.read()
         files = {'photo': (img_path.filename, file_content, img_path.content_type)}
@@ -101,13 +103,13 @@ async def handle_request(url: str, parameters: dict = None, files: dict = None, 
                 response = await client.get(url, params=parameters, timeout=10)
 
             response.raise_for_status()
-            return response
+            return response.json()
         except httpx.TimeoutException:
-            return TIMEOUT_MESSAGE
-        except httpx.HTTPStatusError as http_err:
-            return f'{ERROR_MESSAGE_PREFIX} {http_err}'
-        except httpx.RequestError as req_err:
-            return f'{ERROR_MESSAGE_PREFIX} {req_err}'
+            return {'status_code': 408, 'detail': 'Request Timeout'}
+        except httpx.HTTPStatusError as http_error:
+            return {'status_code': http_error.response.status_code, 'detail': str(http_error)}
+        except httpx.RequestError as request_error:
+            return {'status_code': 500, 'detail': f'Request Error: {str(request_error)}'}
 
 
 async def auth_ready():
@@ -121,5 +123,5 @@ async def transaction_ready():
 
 
 async def face_verification_ready():
-    """Проверяет состояние transaction сервиса."""
+    """Проверяет состояние face verification сервиса."""
     return await handle_request(url='http://host.docker.internal:8003/face_verification/health/ready')

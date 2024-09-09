@@ -14,19 +14,27 @@ from io import BytesIO
 import httpx
 
 @pytest.fixture
-async def user():
+async def user(mocker: MockerFixture):
     """Фикстура для создания тестового пользователя."""
     login = 'mike'
     password = 'superboss'
-    await api_registration(login, password)
-    return login, password
+    mock_response = mocker.Mock(spec=httpx.Response)
+    mock_response.json.return_value = {'login': login, 'password': password}
+    mocker.patch('app.common.handle_request', return_value=mock_response)
+    response = await api_registration(login, password)
+    return response
 
 @pytest.fixture
-async def test_token(user):
+async def test_token(user, mocker: MockerFixture):
     """Фикстура для получения токена пользователя."""
-    login, password = user
-    token = await api_authorisation(login, password)
-    return token
+    user_data = await user
+    login = user_data.json()['login']
+    password = user_data.json()['password']
+    mock_response = mocker.Mock(spec=httpx.Response)
+    mock_response.json.return_value = {'token': 'some_token'}
+    mocker.patch('app.common.handle_request', return_value=mock_response)
+    token_response = await api_authorisation(login, password)
+    return token_response
 
 @pytest.fixture
 def mock_file():
@@ -43,12 +51,13 @@ time = datetime.now()
     pytest.param('mike', '', id='is not correct', marks=pytest.mark.xfail()),
     pytest.param('', '', id='is not correct', marks=pytest.mark.xfail()),
 ])
-async def test_api_registration(login, password, mocker: MockerFixture):
+async def test_api_registration(login, password, mocker: MockerFixture, user):
     mock_response = mocker.Mock(spec=httpx.Response)
-    mock_response.json.return_value = {'status': 'success'}
+    mock_response.json.return_value = {'login': login, 'password': password}
     mocker.patch('app.common.handle_request', return_value=mock_response)
     response = await api_registration(login, password)
-    assert response == {'status': 'success'}
+    user_response = await user
+    assert response.json() == user_response.json()
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('login, password', [
@@ -58,28 +67,29 @@ async def test_api_registration(login, password, mocker: MockerFixture):
     pytest.param('', '', id='is not correct', marks=pytest.mark.xfail()),
     pytest.param('johny', 'pwd123', id='is not correct', marks=pytest.mark.xfail()),
 ])
-async def test_api_authorisation(login, password, mocker: MockerFixture):
+async def test_api_authorisation(login, password, mocker: MockerFixture, test_token):
     mock_response = mocker.Mock(spec=httpx.Response)
     mock_response.json.return_value = {'token': 'some_token'}
-    mocker.patch('app.common.handle_request', return_value=mock_response.json())
+    mocker.patch('app.common.handle_request', return_value=mock_response)
     response = await api_authorisation(login, password)
-    assert response == {'token': 'some_token'}
+    token_response = await test_token
+    assert response.json() == token_response.json()
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('user_id, token, amount, transaction_type',
- [pytest.param(1, test_token, 1000, '+',  id='is correct'),
-  pytest.param(4, test_token, 1000, '+', id='is not correct', marks=pytest.mark.xfail()),
-  pytest.param(1, test_token, -1000, '+', id='is not correct', marks=pytest.mark.xfail()),
+ [pytest.param(1, test_token, 1000, 'debit',  id='is correct'),
+  pytest.param(4, test_token, 1000, 'debit', id='is not correct', marks=pytest.mark.xfail()),
+  pytest.param(1, test_token, -1000, 'debit', id='is not correct', marks=pytest.mark.xfail()),
   pytest.param(1, test_token, 1000, '?', id='is not correct', marks=pytest.mark.xfail()),
   ]
 )
 async def test_api_create_transaction(user_id, token, amount, transaction_type, mocker: MockerFixture):
     mocker.patch('app.common.api_validate', return_value=True)
     mock_response = mocker.Mock(spec=httpx.Response)
-    mock_response.json.return_value = {'status': 'Correct operation'}
+    mock_response.json.return_value = {"status": "Операция корректная"}
     mocker.patch('app.common.handle_request', return_value=mock_response)
     response = await api_create_transaction(user_id, token, amount, transaction_type)
-    assert response == {'status': 'Correct operation'}
+    assert response.json() == {"status": "Операция корректная"}
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('user_id, token, start, end', [
@@ -92,7 +102,7 @@ async def test_get_transaction(user_id, token, start, end, mocker: MockerFixture
     mock_response.json.return_value = {'transactions': []}
     mocker.patch('app.common.handle_request', return_value=mock_response)
     response = await api_get_transaction(user_id, token, start, end)
-    assert response == {'transactions': []}
+    assert response.json() == {'transactions': []}
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('user_id, token', [
@@ -113,8 +123,8 @@ async def test_validate(user_id, token, mocker: MockerFixture):
 async def test_verify(user_id, token, mock_file, mocker: MockerFixture):
     mocker.patch('app.common.api_validate', return_value=(token == 'valid_token'))
     mock_response = mocker.Mock(spec=httpx.Response)
-    mock_response.json.return_value = {'status': 'verification successful'}
+    mock_response.json.return_value = {'status': 'верификация прошла успешно'}
     mocker.patch('app.common.handle_request', return_value=mock_response)
     response = await api_verify(user_id, token, mock_file)
-    expected_response = {'status': 'verification successful'}
-    assert response == expected_response
+    expected_response = {'status': 'верификация прошла успешно'}
+    assert response.json() == expected_response

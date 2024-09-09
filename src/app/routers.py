@@ -11,17 +11,18 @@ from app.common import (
     transaction_ready,
     face_verification_ready,
     auth_ready,
-    api_verify,
-    api_validate
+    api_verify
 )
+
 
 router = APIRouter(
     prefix="/api_gateway",
 )
 
 @router.post('/api_registration')
-def registration(user: Annotated[str, str, Depends(api_registration)]):
-    return user
+async def registration(login: str, password: str):
+    return await api_registration(login, password)
+
 
 @router.post('/api_authorisation')
 def authorisation(user: Annotated[str, str, Depends(api_authorisation)]):
